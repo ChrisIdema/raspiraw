@@ -69,7 +69,7 @@ enum bayer_order
 {
 	// Carefully ordered so that an hflip is ^1,
 	// and a vflip is ^2.
-	BAYER_ORDER_BGGR,
+	BAYER_ORDER_BGGR=0,
 	BAYER_ORDER_GBRG,
 	BAYER_ORDER_GRBG,
 	BAYER_ORDER_RGGB
@@ -113,7 +113,7 @@ struct raspiraw_crop
 
 struct sensor_def
 {
-	char *name;
+	const char *name;
 	struct sensor_regs *common_init;
 	int num_common_init;
 	struct mode_def *modes;
@@ -602,7 +602,7 @@ static void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 					{
 						cfg->ptso->idx = count;
 						cfg->ptso->pts = buffer->pts;
-						cfg->ptso->nxt = malloc(sizeof(*cfg->ptso->nxt));
+						cfg->ptso->nxt = (pts_node*)malloc(sizeof(*cfg->ptso->nxt));
 						cfg->ptso = cfg->ptso->nxt;
 					}
 					if (!cfg->write_empty)
@@ -624,9 +624,9 @@ static void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 		int pitch = mmal_encoding_width_to_stride(port->format->encoding, port->format->es->video.width);
 
 		vcos_log_error("First metadata line");
-		decodemetadataline(buffer->user_data, bpp);
+		decodemetadataline((uint8_t*)buffer->user_data, bpp);
 		vcos_log_error("Second metadata line");
-		decodemetadataline(buffer->user_data + pitch, bpp);
+		decodemetadataline((uint8_t*)buffer->user_data + pitch, bpp);
 	}
 
 	/* Pass the buffers off to any other MMAL sinks. */
@@ -907,7 +907,7 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 					}
 					percent++;
 				}
-				cfg->output = malloc(len + 10); // leave enough space for any timelapse
+				cfg->output = (char*)malloc(len + 10); // leave enough space for any timelapse
 								// generated changes to filename
 				if (cfg->output)
 				{
@@ -1012,7 +1012,7 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 		case CommandRegs: // register changes
 		{
 			len = strlen(argv[i + 1]);
-			cfg->regs = malloc(len + 1);
+			cfg->regs = (char*)malloc(len + 1);
 			vcos_assert(cfg->regs);
 			strncpy(cfg->regs, argv[i + 1], len + 1);
 			i++;
@@ -1070,7 +1070,7 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 
 		case CommandWriteHeader0:
 			len = strlen(argv[i + 1]);
-			cfg->write_header0 = malloc(len + 1);
+			cfg->write_header0 = (char*)malloc(len + 1);
 			vcos_assert(cfg->write_header0);
 			strncpy(cfg->write_header0, argv[i + 1], len + 1);
 			i++;
@@ -1078,7 +1078,7 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 
 		case CommandWriteHeaderG:
 			len = strlen(argv[i + 1]);
-			cfg->write_headerg = malloc(len + 1);
+			cfg->write_headerg = (char*)malloc(len + 1);
 			vcos_assert(cfg->write_headerg);
 			strncpy(cfg->write_headerg, argv[i + 1], len + 1);
 			i++;
@@ -1086,11 +1086,11 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 
 		case CommandWriteTimestamps:
 			len = strlen(argv[i + 1]);
-			cfg->write_timestamps = malloc(len + 1);
+			cfg->write_timestamps = (char*)malloc(len + 1);
 			vcos_assert(cfg->write_timestamps);
 			strncpy(cfg->write_timestamps, argv[i + 1], len + 1);
 			i++;
-			cfg->ptsa = malloc(sizeof(*cfg->ptsa));
+			cfg->ptsa = (PTS_NODE_T)malloc(sizeof(*cfg->ptsa));
 			cfg->ptso = cfg->ptsa;
 			break;
 
@@ -1179,7 +1179,7 @@ static int parse_cmdline(int argc, char **argv, RASPIRAW_PARAMS_T *cfg)
 					}
 					percent++;
 				}
-				cfg->output_yuv = malloc(len + 10); // leave enough space for any timelapse
+				cfg->output_yuv = (char*)malloc(len + 10); // leave enough space for any timelapse
 								    // generated changes to filename
 				if (cfg->output_yuv)
 				{
@@ -1331,10 +1331,10 @@ static void run_awb_calcs(RASPIRAW_CALLBACK_T *dev, MMAL_BUFFER_HEADER_T *buffer
 	{
 		for (y = 8; y < dev->rawcam_output->format->es->video.crop.height; y += 16)
 		{
-			sums[0] += get_pixel(x, y, encoding, stride, buffer->user_data);
-			sums[1] += get_pixel(x + 1, y, encoding, stride, buffer->user_data);
-			sums[2] += get_pixel(x, y + 1, encoding, stride, buffer->user_data);
-			sums[3] += get_pixel(x + 1, y + 1, encoding, stride, buffer->user_data);
+			sums[0] += get_pixel(x, y,         encoding, stride, (uint8_t*)buffer->user_data);
+			sums[1] += get_pixel(x + 1, y,     encoding, stride, (uint8_t*)buffer->user_data);
+			sums[2] += get_pixel(x, y + 1,     encoding, stride, (uint8_t*)buffer->user_data);
+			sums[3] += get_pixel(x + 1, y + 1, encoding, stride, (uint8_t*)buffer->user_data);
 			count++;
 		}
 	}
@@ -1452,8 +1452,13 @@ static void vr_ip_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	buffers_to_isp_op(dev);
 }
 
+void init_viewer();
+
 int main(int argc, char **argv)
 {
+
+	init_viewer();
+
 	RASPIRAW_PARAMS_T cfg = { 0 };
 	RASPIRAW_CALLBACK_T dev = { .cfg = &cfg, .rawcam_pool = NULL, .rawcam_output = NULL };
 	RASPIRAW_ISP_CALLBACK_T yuv_cb = {
@@ -2063,7 +2068,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				buffer->data = (void *)vc_handle;
+				buffer->data = (uint8_t *)vc_handle;
 				buffer->alloc_size = output->buffer_size;
 				buffer->user_data = mem;
 			}
@@ -2121,7 +2126,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				buffer->data = (void *)vc_handle;
+				buffer->data = (uint8_t *)vc_handle;
 				buffer->alloc_size = isp->output[0]->buffer_size;
 				buffer->user_data = mem;
 			}
@@ -2372,14 +2377,14 @@ void update_regs(const struct sensor_def *sensor, struct mode_def *mode, int hfl
 	{
 		modRegBit(mode, sensor->vflip_reg, sensor->vflip_reg_bit, vflip, XOR);
 		if (vflip && !sensor->flips_dont_change_bayer_order)
-			mode->order ^= 2;
+			mode->order = (enum bayer_order)(mode->order^2);
 	}
 
 	if (sensor->hflip_reg)
 	{
 		modRegBit(mode, sensor->hflip_reg, sensor->hflip_reg_bit, hflip, XOR);
 		if (hflip && !sensor->flips_dont_change_bayer_order)
-			mode->order ^= 1;
+			mode->order = (enum bayer_order)(mode->order^1);
 	}
 
 	if (sensor->exposure_reg && exposure != -1)

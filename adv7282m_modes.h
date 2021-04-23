@@ -304,7 +304,7 @@ struct mode_def adv7282_modes[] = {
 	    .width = 720,
 	    .height = 576,
 	    .encoding = MMAL_ENCODING_UYVY,
-	    .order = 0,
+	    .order = BAYER_ORDER_BGGR,
 	    .native_bit_depth = 0,
 	    .image_id = 0x1E,
 	    .data_lanes = 1,
@@ -320,7 +320,7 @@ struct mode_def adv7282_modes[] = {
 	    .width = 720,
 	    .height = 480,
 	    .encoding = MMAL_ENCODING_UYVY,
-	    .order = 0,
+	    .order = BAYER_ORDER_BGGR,
 	    .native_bit_depth = 0,
 	    .image_id = 0x1E,
 	    .data_lanes = 1,
@@ -330,7 +330,7 @@ struct mode_def adv7282_modes[] = {
 	    .term = { 1, 1 },
 	    .black_level = 0,
 	},
-};
+};	
 
 struct sensor_regs adv7282_stop[] = {
 	// adv7180_set_power

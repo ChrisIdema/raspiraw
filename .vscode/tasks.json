@@ -1,0 +1,74 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "test2",
+            "command": "g++",
+            "args": [
+                "-I/opt/vc/include",
+                "-I/opt/vc/include/interface/mmal",
+                "-I/opt/vc/include/interface/vcos/pthreads",
+                "-I/opt/vc/include/interface/vmcs_host/linux",
+                "-I/usr/local/include/opencv4",
+                "-I/usr/local/include/MNN",
+                
+                "-Lpthread",
+                "-Lrt",
+                "-L/opt/vc/lib/",
+    
+                "`",
+                "pkg-config",
+                "--libs",
+                "--cflags",
+                "opencv4",
+                "`",
+
+                "-lbcm_host",
+                "-lmmal",
+                "-lmmal_core",
+                "-lmmal_components",
+                "-lmmal_util",
+                "-lvcos",
+                "-lpthread",
+                "-lrt",
+                "-lmmal_vc_client", 
+                "-lvcsm",
+
+                "-lopencv_core",
+                "-lopencv_highgui",
+                "-lopencv_imgproc",
+                "-lopencv_imgcodecs", 
+                "-lopencv_videoio",
+
+                "-lwiringPi",
+                "-Lm",
+        
+//                "-Lstdc++",
+                "-lMNN",
+
+                "-Wl,--no-as-needed",
+                "-fexceptions", 
+                "-pthread",
+                "-O4",
+
+                "RaspiCLI.c",
+                "raspiraw.c",
+                "opencv_raw.cpp",
+                
+                "-oraspiraw"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "compiler: /usr/bin/gcc-8"
+        }
+
+    ]
+}
