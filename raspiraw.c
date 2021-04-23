@@ -58,6 +58,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "raw_header.h"
 
+void opencv_raw_update(uint8_t* data,size_t len);
+
 #define DEFAULT_I2C_DEVICE 10
 #define ALT_I2C_DEVICE	   0
 
@@ -568,10 +570,13 @@ static void buffers_to_rawcam(RASPIRAW_CALLBACK_T *dev)
 
 	while ((buffer = mmal_queue_get(dev->rawcam_pool->queue)) != NULL)
 	{
+		//opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
 		mmal_port_send_buffer(dev->rawcam_output, buffer);
 		// vcos_log_error("Buffer %p to rawcam\n", buffer);
 	}
 }
+
+
 
 static void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 {
@@ -580,43 +585,49 @@ static void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	RASPIRAW_PARAMS_T *cfg = (RASPIRAW_PARAMS_T *)dev->cfg;
 	MMAL_STATUS_T status;
 
+	opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
+
 	// vcos_log_error("Buffer %p returned, filled %d, timestamp %llu, flags %04X", buffer, buffer->length,
 	// buffer->pts, buffer->flags);
-	if (cfg->capture)
-	{
+	// if (cfg->capture)
+	// {
 
-		if (!(buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO) && (((count++) % cfg->saverate) == 0))
-		{
-			// Save every Nth frame
-			// SD card access is too slow to do much more.
-			FILE *file;
-			char *filename = NULL;
-			if (create_filenames(&filename, cfg->output, count) == MMAL_SUCCESS)
-			{
-				file = fopen(filename, "wb");
-				if (file)
-				{
-					if (cfg->ptso) // make sure previous
-						       // malloc() was
-						       // successful
-					{
-						cfg->ptso->idx = count;
-						cfg->ptso->pts = buffer->pts;
-						cfg->ptso->nxt = (pts_node*)malloc(sizeof(*cfg->ptso->nxt));
-						cfg->ptso = cfg->ptso->nxt;
-					}
-					if (!cfg->write_empty)
-					{
-						if (cfg->write_header)
-							fwrite(brcm_header, BRCM_RAW_HEADER_LENGTH, 1, file);
-						fwrite(buffer->user_data, buffer->length, 1, file);
-					}
-					fclose(file);
-				}
-				free(filename);
-			}
-		}
-	}
+	// 	//printf("test\n");
+
+	// 	opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
+
+	// 	if (!(buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO) && (((count++) % cfg->saverate) == 0))
+	// 	{
+	// 		// Save every Nth frame
+	// 		// SD card access is too slow to do much more.
+	// 		FILE *file;
+	// 		char *filename = NULL;
+	// 		if (create_filenames(&filename, cfg->output, count) == MMAL_SUCCESS)
+	// 		{
+	// 			file = fopen(filename, "wb");
+	// 			if (file)
+	// 			{
+	// 				if (cfg->ptso) // make sure previous
+	// 					       // malloc() was
+	// 					       // successful
+	// 				{
+	// 					cfg->ptso->idx = count;
+	// 					cfg->ptso->pts = buffer->pts;
+	// 					cfg->ptso->nxt = (pts_node*)malloc(sizeof(*cfg->ptso->nxt));
+	// 					cfg->ptso = cfg->ptso->nxt;
+	// 				}
+	// 				if (!cfg->write_empty)
+	// 				{
+	// 					if (cfg->write_header)
+	// 						fwrite(brcm_header, BRCM_RAW_HEADER_LENGTH, 1, file);
+	// 					fwrite(buffer->user_data, buffer->length, 1, file);
+	// 				}
+	// 				fclose(file);
+	// 			}
+	// 			free(filename);
+	// 		}
+	// 	}
+	// }
 
 	if (cfg->decodemetadata && (buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO))
 	{
