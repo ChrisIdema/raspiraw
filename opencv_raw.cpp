@@ -69,9 +69,15 @@ void opencv_raw_update(uint8_t* data,size_t len){
     // Mat bgr =Mat(480,640,CV_8UC3,data);    
     // resize(bgr, preview_img,Size(320,240),0,0,INTER_NEAREST);
 
-    // YUV_422 input:
-    Mat yuv =Mat(720,640,CV_8UC1,data);
-    Mat bgr =Mat(480,640,CV_8UC3);
+    // // YUV_422 input mode 7:
+    // Mat yuv =Mat(720,640,CV_8UC1,data);
+    // Mat bgr =Mat(480,640,CV_8UC3);
+    // cvtColor(yuv, bgr, COLOR_YUV2BGR_I420);
+    
+
+    // YUV_422 input mode 5:
+    Mat yuv =Mat(1104,1312,CV_8UC1,data);
+    Mat bgr =Mat(736,1312,CV_8UC3);
     cvtColor(yuv, bgr, COLOR_YUV2BGR_I420);
     
     resize(bgr, preview_img,Size(320,240),0,0,INTER_NEAREST);
