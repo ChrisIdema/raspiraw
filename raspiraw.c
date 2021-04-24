@@ -585,7 +585,7 @@ static void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	RASPIRAW_PARAMS_T *cfg = (RASPIRAW_PARAMS_T *)dev->cfg;
 	MMAL_STATUS_T status;
 
-	opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
+	//opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
 
 	// vcos_log_error("Buffer %p returned, filled %d, timestamp %llu, flags %04X", buffer, buffer->length,
 	// buffer->pts, buffer->flags);
@@ -1409,6 +1409,10 @@ static void *processing_thread_task(void *arg)
 			// DO SOME FORM OF PROCESSING ON THE RAW BAYER DATA HERE
 			// buffer->user_data points to the data, with
 			// buffer->length being the length of the data.
+
+			//opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
+
+
 		}
 
 		mmal_buffer_header_release(buffer);
@@ -1446,6 +1450,9 @@ static void *processing_yuv_thread_task(void *arg)
 			// DO SOME FORM OF PROCESSING ON THE YUV DATA HERE
 			// buffer->user_data points to the data, with
 			// buffer->length being the length of the data.
+
+			opencv_raw_update((uint8_t*)buffer->user_data,buffer->length);
+
 		}
 
 		mmal_buffer_header_release(buffer);
@@ -2007,7 +2014,7 @@ int main(int argc, char **argv)
 	}
 	port->format->es->video.width = VCOS_ALIGN_UP(port->format->es->video.crop.width, 32);
 	port->format->es->video.height = VCOS_ALIGN_UP(port->format->es->video.crop.height, 16);
-	port->format->encoding = MMAL_ENCODING_I420;
+	port->format->encoding = MMAL_ENCODING_BGR24;//MMAL_ENCODING_I420;
 	port->buffer_num = 6; // Go for 6 output buffers to give some slack
 	status = mmal_port_format_commit(port);
 	if (status != MMAL_SUCCESS)
