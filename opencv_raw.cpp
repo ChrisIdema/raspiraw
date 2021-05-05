@@ -79,7 +79,8 @@ void opencv_raw_update(uint8_t* data,size_t len){
         Mat yuv = Mat(720,640,CV_8UC1,data);
         bgr =Mat(480,640,CV_8UC3);
         cvtColor(yuv, bgr, COLOR_YUV2BGR_I420);
-        resize(bgr, preview_img,Size(320,240),0,0,INTER_LINEAR);
+        preview_img = bgr.clone();
+        //resize(bgr, preview_img,Size(320,240),0,0,INTER_LINEAR);
     }
     else if(opencv_raw_sensor_mode==5){
         // YUV_420 input mode 5:
@@ -93,11 +94,17 @@ void opencv_raw_update(uint8_t* data,size_t len){
         cv::Rect roi;
         roi.x = 0;
         roi.y = 0;
-        roi.width  = 1296;
-        roi.height = 730;
+
+        // roi.width  = 1296;
+        // roi.height = 730;
+        roi.width  = 1280;
+        roi.height = 720;
+
         bgr = bgr(roi);
 
-        resize(bgr, preview_img,Size(648,365),0,0,INTER_LINEAR);
+
+        // resize(bgr, preview_img,Size(648,365),0,0,INTER_LINEAR);
+        resize(bgr, preview_img,Size(640,360),0,0,INTER_LINEAR);
     }
 
 
