@@ -1472,6 +1472,8 @@ static void vr_ip_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 
 void init_viewer();
 
+extern uint8_t opencv_raw_sensor_mode;
+
 int main(int argc, char **argv)
 {
 
@@ -1526,6 +1528,8 @@ int main(int argc, char **argv)
 	{
 		exit(-1);
 	}
+
+	opencv_raw_sensor_mode = cfg.mode;
 
 	if (cfg.i2c_bus == -1)
 	{
